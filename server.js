@@ -1,45 +1,29 @@
-
-import express from 'express';
-import cors from 'cors';
-import axios from 'axios';
-
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
 const app = express();
+
 app.use(cors());
 
-const API_KEY = "FTiRUVLFi6jvY4yJlVT/2ChAO0MhSw0ILpHjiw/YEn0nNzM9eHCR9YH09s+nG/oEGmfhSxJ+J0n2fijaN17pCw==";
-const BASE_URL = "https://openapi.jeonju.go.kr/rest";
+const PORT = process.env.PORT || 3000;
+const API_KEY = 'FTiRUVLFi6jvY4yJlVT/2ChAO0MhSw0ILpHjiw/YEn0nNzM9eHCR9YH09s+nG/oEGmfhSxJ+J0n2fijaN17pCw==';
 
-const endpoints = {
-  places: "/local",
-  food: "/jeonjufood",
-  lodging: "/hanokhouse",
-  festival: "/event/getEventList",
-  shopping: "/shoppingcenter"
-};
+app.get('/', (req, res) => {
+  res.send('Jeonju GPT Backend API 서버입니다.');
+});
 
-app.get("/api/:type", async (req, res) => {
-  const type = req.params.type;
-  const url = endpoints[type];
-  if (!url) return res.status(400).send("Invalid API type");
-
+// ✅ Jeonju 음식 API
+app.get('/api/jeonju/food', async (req, res) => {
   try {
-    const result = await axios.get(`${BASE_URL}${url}`, {
-      params: {
-        serviceKey: API_KEY,
-        dataType: "json"
-      }
-    });
-    res.json(result.data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const url = `https://openapi.jeonju.go.kr/rest/jeonjufood/getJeonjuFoodList?serviceKey=${encodeURIComponent(API_KEY)}&pageNo=1&numOfRows=10&type=json`;
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (error) {
+    console.error('음식 API 호출 실패:', error.message);
+    res.status(500).json({ error: 'Jeonju API 호출 실패' });
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Jeonju Tour API Backend is running.");
-});
-
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log(`Server is running on port ${PORT}`);
 });
